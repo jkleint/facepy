@@ -173,19 +173,17 @@ class GraphAPI(object):
             )
 
         for response, request in zip(responses, requests):
-
-            # Facilitate for empty Graph API responses.
-            #
-            # https://github.com/jgorset/facepy/pull/30
+            # Facilitate for empty Graph API responses.  https://github.com/jgorset/facepy/pull/30
             if not response:
                 yield None
-                continue
-
-            try:
-                yield self._parse(response['body'])
-            except FacepyError as exception:
-                exception.request = request
-                yield exception
+            elif isinstance(response, basestring):
+                yield FacebookError(response)
+            else:
+                try:
+                    yield self._parse(response['body'])
+                except FacepyError as exception:
+                    exception.request = request
+                    yield exception
 
     def fql(self, query, retry=3):
         """
